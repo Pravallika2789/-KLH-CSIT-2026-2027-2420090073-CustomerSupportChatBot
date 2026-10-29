@@ -1,346 +1,188 @@
-````markdown
 # 🤖 LLM-Based Intelligent Customer Support Chatbot with Knowledge Retrieval
+
+An AI-powered customer support chatbot that combines **Retrieval-Augmented Generation (RAG), semantic search, FAISS vector retrieval, and Google Gemini** to retrieve relevant FAQ information and generate context-aware responses.
 
 ## 📌 Overview
 
-The **LLM-Based Intelligent Customer Support Chatbot with Knowledge Retrieval** is an intelligent customer-support system that combines **Large Language Models (LLMs)** with **Retrieval-Augmented Generation (RAG)** to provide relevant, context-aware, and knowledge-grounded responses.
+Customer support systems often handle repetitive questions about products, services, policies, and common issues. Finding the right information manually can be time-consuming, while standalone Large Language Models (LLMs) may generate answers that are not grounded in the actual support knowledge base.
 
-Instead of relying only on an LLM to generate an answer, the system first retrieves relevant customer-support information using **semantic similarity search**. The retrieved knowledge is then provided to **Google Gemini**, which generates the final response.
+This project addresses these challenges by combining semantic retrieval with LLM-based response generation. It retrieves relevant FAQ records using vector similarity search and supplies the retrieved context to Google Gemini to generate a response.
 
-The project combines:
-
-- 🧠 Semantic embeddings
-- 🔎 FAISS vector search
-- 📚 Knowledge retrieval
-- 🤖 Google Gemini
-- ⚡ FastAPI
-- ⚛️ React + Vite
-- 💬 Conversational chatbot interface
-- 📖 Source-aware responses
-
----
+The application uses **React + Vite** for the frontend and **FastAPI** for the backend.
 
 ## 🎯 Problem Statement
 
-Customer-support information is often distributed across FAQs, product documentation, policies, warranty information, and user guides.
+Traditional customer support systems may rely on keyword matching or predefined responses, making it difficult to handle questions expressed in different ways. Standalone LLMs may also generate unsupported information when they lack access to the relevant knowledge source.
 
-Traditional rule-based chatbots mainly depend on predefined keywords or fixed responses, making them less effective when customers phrase questions differently.
+The objective of this project is to develop a chatbot that retrieves semantically relevant customer-support information and uses the retrieved context to generate helpful, context-aware responses.
 
-On the other hand, standalone LLMs can generate fluent responses without necessarily grounding them in the organization's actual support information.
+## ✨ Key Features
 
-Therefore, this project aims to develop a customer-support chatbot that can:
+- 🧠 **Semantic Search:** Identifies relevant FAQ entries based on meaning rather than exact keyword matches.
+- 🔎 **FAISS Vector Retrieval:** Searches the FAQ embedding index using `IndexFlatL2`.
+- 📚 **Knowledge-Grounded Generation:** Supplies retrieved FAQ context to the language model.
+- 🤖 **Google Gemini Integration:** Generates natural-language responses from the user query and retrieved context.
+- ⚡ **FastAPI Backend:** Exposes API endpoints for communication between the frontend and AI pipeline.
+- 💻 **React + Vite Frontend:** Provides a user-facing chatbot interface.
+- 🔗 **Retrieved Sources:** The API response is designed to return retrieved support records alongside the generated answer.
+- 🧩 **Extensible Architecture:** Provides a foundation for future improvements such as product-aware retrieval and human-agent escalation.
 
-- Understand customer queries semantically
-- Retrieve relevant support information
-- Generate knowledge-grounded responses
-- Reduce unsupported responses
-- Provide retrieved sources alongside answers
-- Support a scalable RAG-based architecture
+## 🏗️ System Architecture
 
----
+The system follows a Retrieval-Augmented Generation workflow.
 
-## 🎯 Objectives
-
-- Develop an intelligent customer-support chatbot using an LLM.
-- Implement a Retrieval-Augmented Generation (RAG) pipeline.
-- Generate semantic embeddings using `all-MiniLM-L6-v2`.
-- Perform efficient similarity search using FAISS.
-- Retrieve the most relevant customer-support information.
-- Construct controlled prompts using retrieved context.
-- Generate natural-language responses using Google Gemini.
-- Provide retrieved sources with generated responses.
-- Build a complete FastAPI backend and React frontend.
-
----
-
-# 🏗️ System Architecture
-
-The project consists of two major phases:
-
-## Phase 1 — Knowledge Base Preparation
-
-The first phase converts customer-support information into a searchable vector knowledge base.
+### 1. Knowledge Base Preparation
 
 ```text
-Customer-Support FAQ Dataset
-            ↓
-      Data Processing
-            ↓
-     Text Preparation
-            ↓
-   Embedding Generation
-            ↓
+Customer Support FAQ Dataset
+           ↓
+    Data Processing
+           ↓
+  Text Representation
+           ↓
+  Embedding Generation
+           ↓
    all-MiniLM-L6-v2
-            ↓
+           ↓
       FAISS Index
-            ↓
-   Metadata Storage
-````
-
-## Phase 2 — Online RAG Pipeline
-
-When a customer submits a question, the system retrieves relevant information before generating the answer.
-
-```text
-Customer Question
-        ↓
-    React Frontend
-        ↓
-    FastAPI Backend
-        ↓
-   Query Embedding
-        ↓
-  FAISS Similarity Search
-        ↓
-    Top-K Retrieval
-        ↓
-  Context Construction
-        ↓
-   Controlled Prompt
-        ↓
-    Google Gemini
-        ↓
- Generated Response
-        ↓
- Answer + Retrieved Sources
-        ↓
-    React Frontend
+           ↓
+    FAQ Metadata
 ```
 
----
+### 2. Online Query Processing
 
-# 🔄 How the System Works
+```text
+      User Question
+            ↓
+       React + Vite
+            ↓
+       FastAPI API
+            ↓
+      Query Embedding
+            ↓
+     FAISS Similarity Search
+            ↓
+     Top-3 FAQ Retrieval
+            ↓
+      Context Construction
+            ↓
+      Controlled Prompt
+            ↓
+       Google Gemini
+            ↓
+     Generated Response
+            ↓
+       Chatbot Interface
+```
 
-## 1️⃣ User Query
+## 🔄 How It Works
 
-The customer enters a question through the React-based chatbot interface.
+### 1. User Query
+
+The user enters a customer-support question through the chatbot interface.
 
 Example:
 
 ```text
-"How can I return my order?"
+How can I return my order?
 ```
 
-The frontend sends the query to the FastAPI backend through the `/chat` API.
+The frontend sends the question to the FastAPI backend.
 
----
+### 2. Query Embedding
 
-## 2️⃣ Query Embedding
+The question is converted into a numerical vector using the `all-MiniLM-L6-v2` sentence-transformer model.
 
-The customer's question is converted into a numerical vector using:
+This representation helps the system identify semantically similar FAQ records even when the query wording differs from the stored question.
 
-**Model:** `all-MiniLM-L6-v2`
+### 3. Semantic Retrieval
 
-The embedding captures the semantic meaning of the question rather than relying only on exact keyword matching.
+FAISS searches the FAQ vector index using `IndexFlatL2`, which performs exact nearest-neighbour search based on squared L2 distance.
+
+The current runtime retrieval configuration selects the top three records.
+
+### 4. Context Construction
+
+The retrieved FAQ records provide relevant information for response generation. The context may contain fields such as:
+
+- Question
+- Answer
+- Source
+
+### 5. Prompt Construction
+
+The user query and retrieved information are assembled into a prompt for Google Gemini.
+
+The prompt is designed to encourage the model to use the provided support information, avoid inventing unsupported policies, and indicate when the available context is insufficient.
+
+### 6. Response Generation
+
+Google Gemini generates a natural-language response based on the query and retrieved context.
+
+### 7. Response Delivery
+
+The backend returns the generated answer to the frontend. The API response can also include retrieved FAQ records to make the information used by the retrieval pipeline more transparent.
+
+## 🧠 Retrieval-Augmented Generation (RAG)
+
+Instead of sending a question directly to an LLM, the system first retrieves relevant information.
 
 ```text
-Customer Query
+User Question
       ↓
-all-MiniLM-L6-v2
+Query Embedding
       ↓
-Query Vector
+Vector Similarity Search
+      ↓
+Relevant FAQ Records
+      ↓
+Question + Retrieved Context
+      ↓
+Google Gemini
+      ↓
+Generated Response
 ```
 
----
+This separates knowledge retrieval from language generation and provides the LLM with relevant external information when generating a response.
 
-## 3️⃣ Semantic Retrieval
+## 📚 Dataset
 
-The generated query vector is searched against the pre-built FAISS index.
+The primary knowledge source is the **Customer Support FAQs dataset**.
 
-The project uses:
+Dataset identifier:
 
-```text
-FAISS IndexFlatL2
-```
+`MakTek/Customer_support_faqs_dataset`
 
-The system performs L2 nearest-neighbor search and retrieves the **Top-K relevant documents**.
-
-Current retrieval configuration:
-
-```text
-Top-K = 3
-```
-
----
-
-## 4️⃣ Context Construction
-
-The retrieved FAQ records are converted into a structured context containing:
-
-```text
-Source
-Question
-Answer
-```
-
-This retrieved information is then included in the prompt sent to the LLM.
-
----
-
-## 5️⃣ Controlled Prompt Generation
-
-A prompt is constructed with explicit instructions to ensure that the model answers using the retrieved customer-support information.
-
-The prompt instructs the model to:
-
-* Answer the customer's question directly.
-* Use the provided support information.
-* Combine multiple relevant sources when useful.
-* Keep responses concise and understandable.
-* Avoid inventing policies or unsupported information.
-* Avoid exposing internal retrieval details.
-* Indicate when the available information is insufficient.
-
----
-
-## 6️⃣ LLM Response Generation
-
-The constructed prompt is sent to **Google Gemini**.
-
-```text
-Retrieved Context
-       +
-Customer Question
-       ↓
-   Google Gemini
-       ↓
-Natural-Language Response
-```
-
-The generated response is then returned to the frontend.
-
----
-
-## 7️⃣ Source-Aware Response
-
-The API returns both:
-
-* Generated answer
-* Retrieved support documents
-
-Example response structure:
-
-```json
-{
-  "answer": "You can return your order by following the return procedure provided in the support information.",
-  "sources": [
-    {
-      "question": "How can I return my order?",
-      "answer": "...",
-      "source": "customer_support_faq"
-    }
-  ]
-}
-```
-
-This makes the retrieval process more transparent and helps connect the generated response to the underlying knowledge.
-
----
-
-# 🧠 Retrieval-Augmented Generation
-
-The core methodology of the project is **Retrieval-Augmented Generation (RAG)**.
-
-Instead of:
-
-```text
-Question
-   ↓
-LLM
-   ↓
-Answer
-```
-
-the project follows:
-
-```text
-Question
-   ↓
-Embedding
-   ↓
-Vector Retrieval
-   ↓
-Relevant Knowledge
-   ↓
-Context + Question
-   ↓
-LLM
-   ↓
-Grounded Answer
-```
-
-This architecture separates **knowledge retrieval** from **language generation**.
-
----
-
-# 🔎 Retrieval Pipeline
-
-```text
-Input Question
-      ↓
-Generate Query Embedding
-      ↓
-FAISS Vector Search
-      ↓
-Calculate L2 Distances
-      ↓
-Rank Relevant Documents
-      ↓
-Select Top-K Documents
-      ↓
-Construct Context
-      ↓
-Send Context to Gemini
-```
-
-### Retrieval Components
-
-| Component          | Technology          |
-| ------------------ | ------------------- |
-| Embedding Model    | `all-MiniLM-L6-v2`  |
-| Vector Database    | FAISS               |
-| Index Type         | `IndexFlatL2`       |
-| Search Method      | L2 Nearest Neighbor |
-| Retrieval Strategy | Top-K               |
-| Current Top-K      | 3                   |
-
----
-
-# 📚 Dataset
-
-The primary knowledge base is based on the **Customer Support FAQs dataset**.
+Example loading code:
 
 ```python
 from datasets import load_dataset
 
-ds = load_dataset(
+dataset = load_dataset(
     "MakTek/Customer_support_faqs_dataset"
 )
 ```
 
-The processed FAQ data contains fields such as:
+The main FAQ knowledge base used by the current retrieval pipeline contains **200 records**.
 
-```text
-question
-answer
-source
-text
-```
+The processed FAQ records include fields such as question, answer, and source, depending on the available dataset schema.
 
-The project also collected additional customer-support-related datasets for future experimentation:
+### Additional Datasets
 
-### Amazon Reviews Multi
+The following datasets were also collected for potential future experimentation:
+
+**Amazon Reviews Multi**
 
 ```python
 from datasets import load_dataset
 
-ds = load_dataset(
+dataset = load_dataset(
     "mteb/amazon_reviews_multi",
     "en"
 )
 ```
 
-### Customer Support on Twitter
+**Customer Support on Twitter**
 
 ```python
 import kagglehub
@@ -350,54 +192,33 @@ path = kagglehub.dataset_download(
 )
 ```
 
-> **Note:** The FAQ dataset is the primary knowledge source used by the current RAG pipeline. The Amazon Reviews and Twitter customer-support datasets are documented/collected for further experimentation and are not claimed as part of the current live FAISS index.
+**Dataset status:** The FAQ knowledge base is the primary source used by the current RAG pipeline. The Amazon Reviews Multi and Customer Support on Twitter datasets are not claimed to be integrated into the live FAISS index.
 
----
+Dataset sources and licences should be reviewed before redistribution.
 
-# 🛠️ Technology Stack
+## 🛠️ Technology Stack
 
-## Backend
+| Component | Technology |
+|---|---|
+| Programming Language | Python |
+| Frontend | React, Vite, JavaScript, HTML, CSS |
+| Backend | FastAPI, Uvicorn |
+| Embedding Model | `all-MiniLM-L6-v2` |
+| Vector Search | FAISS |
+| Index Type | `IndexFlatL2` |
+| LLM | Google Gemini API |
+| NLP Approach | Semantic Search, Embeddings, RAG |
+| Data Processing | NumPy, Pandas |
+| Development Tools | Git, GitHub, Visual Studio Code |
 
-* Python
-* FastAPI
-* Pydantic
-* NumPy
-* Pandas
-* Sentence Transformers
-* FAISS
+## 📁 Project Structure
 
-## AI / ML
-
-* `all-MiniLM-L6-v2`
-* Retrieval-Augmented Generation
-* Semantic Search
-* Google Gemini
-* Prompt Engineering
-
-## Frontend
-
-* React
-* Vite
-* JavaScript
-* HTML
-* CSS
-
-## Development Tools
-
-* Git
-* GitHub
-* VS Code
-* Python Virtual Environment
-
----
-
-# 📁 Project Structure
+The following is the intended logical structure. Confirm the filenames against the current repository before relying on this tree.
 
 ```text
 LLM-Customer-Support-Chatbot/
 │
 ├── backend/
-│   ├── __init__.py
 │   ├── main.py
 │   ├── embeddings.py
 │   ├── faiss_index.py
@@ -414,145 +235,121 @@ LLM-Customer-Support-Chatbot/
 │
 ├── data/
 │   ├── customer_support_faq/
-│   │   └── faq_train.csv
-│   │
-│   ├── amazon_reviews/
-│   │   ├── amazon_reviews_en_train.parquet
-│   │   ├── amazon_reviews_en_validation.parquet
-│   │   └── amazon_reviews_en_test.parquet
-│   │
 │   └── processed/
-│       ├── faq_embeddings.npy
-│       ├── faiss_index.bin
-│       ├── faq_metadata.json
-│       └── customer_support_faq_processed.jsonl
 │
 ├── docs/
 │   └── assets/
-│       ├── project-banner.png
-│       ├── system-design.png
-│       └── frontend-demo.png
 │
 ├── .env
 ├── requirements.txt
 └── README.md
 ```
 
----
+## ⚙️ Installation and Setup
 
-# ⚙️ Installation & Setup
+### Prerequisites
 
-## 1️⃣ Clone the Repository
+Install the following before running the application:
 
-```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git
-cd YOUR-REPOSITORY
-```
+- Python 3.x
+- Node.js and npm
+- Git
+- A Google Gemini API key
+- Access to the project source code and required dataset files
 
----
-
-## 2️⃣ Create a Virtual Environment
-
-### Windows
+### 1. Clone the Repository
 
 ```bash
-python -m venv venv
-venv\Scripts\activate
+git clone https://github.com/Pravallika2789/-KLH-CSIT-2026-2027-2420090073-CustomerSupportChatBot.git
+
+cd -KLH-CSIT-2026-2027-2420090073-CustomerSupportChatBot
 ```
 
-### Linux / macOS
+If the repository directory name differs after cloning, enter the directory created by Git.
+
+### 2. Create a Python Virtual Environment
+
+**Windows:**
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python -m venv .venv
+
+.venv\Scripts\activate
 ```
 
----
+**Linux/macOS:**
 
-## 3️⃣ Install Python Dependencies
+```bash
+python3 -m venv .venv
+
+source .venv/bin/activate
+```
+
+### 3. Install Backend Dependencies
+
+From the project root, run:
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+If the project uses separate dependency files, follow the instructions provided in the corresponding directory.
 
-## 4️⃣ Configure Gemini API
+### 4. Configure the Gemini API Key
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root or in the location expected by the backend.
 
 ```env
 GEMINI_API_KEY=your_api_key_here
 ```
 
-The API key is loaded using environment variables and should **never be committed to GitHub**.
+Replace the placeholder with your own API key.
 
-Add `.env` to `.gitignore`:
+**Security:** Never commit API keys, credentials, or private configuration files to GitHub. Add `.env` to `.gitignore`.
 
-```text
-.env
-```
+### 5. Prepare the FAISS Index
 
----
+Ensure that the FAQ data and any required processed files are available.
 
-# 🗂️ Build the Vector Index
-
-After preparing the FAQ dataset, generate the embeddings and FAISS index.
-
-The embedding model:
+The embedding model used is:
 
 ```text
 all-MiniLM-L6-v2
 ```
 
-is used to convert the FAQ content into vectors.
-
-The FAISS index is then created using:
+The vector index uses:
 
 ```python
 faiss.IndexFlatL2(dimension)
 ```
 
-The generated files include:
+If the repository does not contain the prebuilt index, run the project's index-generation script, if available, to generate the required index and metadata files.
 
-```text
-data/processed/faiss_index.bin
-data/processed/faq_metadata.json
-```
+### 6. Run the Backend
 
----
-
-# 🚀 Run the Backend
-
-From the project root:
+From the project root, activate the virtual environment and run:
 
 ```bash
-uvicorn backend.main:app --reload
+python -m uvicorn backend.main:app --reload --port 8000
 ```
 
-The API will be available at:
+This command assumes the backend package is named `backend` and contains `main.py`. Adjust the command if your repository uses a different entry point.
+
+Backend address:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Health endpoint:
+If FastAPI's interactive documentation is enabled, open:
 
 ```text
-GET /health
+http://127.0.0.1:8000/docs
 ```
 
-Chat endpoint:
+### 7. Run the Frontend
 
-```text
-POST /chat
-```
-
----
-
-# 💬 Run the Frontend
-
-Open another terminal:
+Open a second terminal:
 
 ```bash
 cd frontend
@@ -560,25 +357,19 @@ npm install
 npm run dev
 ```
 
-The frontend runs through Vite and communicates with the FastAPI backend.
+Open the local URL printed by Vite in the terminal. Ensure that the frontend API configuration points to the running FastAPI backend.
 
-Typical development URL:
+## 🔌 API Overview
 
-```text
-http://localhost:8080
-```
+The following endpoints describe the intended API interface. Confirm the actual routes and response schemas in the current backend implementation.
 
----
-
-# 🔌 API
-
-## Health Check
+### Health Check
 
 ```http
 GET /health
 ```
 
-Response:
+Example response:
 
 ```json
 {
@@ -586,15 +377,13 @@ Response:
 }
 ```
 
----
-
-## Chat
+### Chat Endpoint
 
 ```http
 POST /chat
 ```
 
-Request:
+Example request:
 
 ```json
 {
@@ -603,7 +392,7 @@ Request:
 }
 ```
 
-Response:
+Example response structure:
 
 ```json
 {
@@ -612,327 +401,132 @@ Response:
     {
       "question": "Relevant FAQ question",
       "answer": "Relevant FAQ answer",
-      "source": "customer_support_faq",
-      "distance": 0.123
+      "source": "customer_support_faq"
     }
   ]
 }
 ```
 
----
+These JSON examples illustrate the interface structure; actual field names and values depend on the implemented API.
 
-# 📊 Evaluation
+## 📊 Retrieval Evaluation
 
-The project evaluates the retrieval and knowledge-grounding components using metrics including:
+The retrieval component was evaluated using the following recorded results:
 
-| Metric                  |  Result | Status      |
-| ----------------------- | ------: | ----------- |
-| Embedding Component     |  99.72% | Measured    |
-| Precision@5             |  68.40% | Measured    |
-| Recall@5                | 100.00% | Measured    |
-| MRR                     |  99.29% | Measured    |
-| Context Relevance       | 100.00% | Measured    |
-| Gemini Answer Relevance |     92% | Assumed     |
-| Gemini Faithfulness     |     92% | Assumed     |
-| Overall Composite       |  93.17% | Provisional |
+| Metric | Result | Status |
+|---|---:|---|
+| Precision@5 | 68.40% | Measured |
+| Recall@5 | 100.00% | Measured |
+| Mean Reciprocal Rank (MRR) | 99.29% | Measured |
+| Context Relevance | 100.00% | Project-defined metric |
 
-### Important Evaluation Note
+### Interpretation
 
-The **93.17% overall score is a project-specific provisional composite score**, calculated using the project's evaluation framework. It should not be interpreted as a standardized chatbot accuracy or as directly comparable to literature results.
+- **Precision@5:** Measures the proportion of the top-five retrieved records that are relevant.
+- **Recall@5:** Measures the proportion of relevant records retrieved within the top five.
+- **MRR:** Measures how highly the first relevant result is ranked.
+- **Context Relevance:** A project-defined measure whose calculation method should be documented for reproducibility.
 
-The Gemini-based full evaluation was also affected by the available API quota, so the failed evaluation result is **not used as the project's final performance result**.
+These results describe the retrieval component and depend on the evaluation queries and relevance judgements.
 
----
+### Generation Evaluation Status
 
-# 📚 Comparative Research Analysis
+The complete Gemini-based generation evaluation was not completed because API requests encountered free-tier quota errors (HTTP 429).
 
-A literature study was conducted across **13 papers and approaches** related to:
+Therefore, the following results are **not available as validated measurements**:
 
-* Retrieval-Augmented Generation
-* Dense Retrieval
-* Sentence Embeddings
-* Vector Search
-* Customer Support
-* Knowledge Graph RAG
-* Agentic RAG
-* RAG Evaluation
+- Generated-answer faithfulness
+- Generated-answer relevance
+- End-to-end answer accuracy
+- User satisfaction
 
-Selected reported numeric results included:
+An earlier project-specific composite score and assumed generation scores are not presented as validated performance results.
 
-| Approach               | Reported Result |
-| ---------------------- | --------------: |
-| RAG — Lewis et al.     |           49.68 |
-| DPR — Karpukhin et al. |           74.80 |
-| REALM — Guu et al.     |           42.63 |
-| Best RAG Practices     |           48.30 |
-| RAGAs                  |           81.00 |
-| SELF-ROUTE             |           46.41 |
-| Enhanced RAG           |           64.20 |
-| KG-RAG                 |           91.86 |
-| Proposed PA-RAG        |      **93.17*** |
+## 🔬 Research Foundation
 
-*Provisional project-specific composite score.
+The project draws on established research in:
 
-These values are **not directly comparable** because the papers use different datasets, tasks, evaluation metrics, and experimental settings.
+- **Retrieval-Augmented Generation:** Combining document retrieval with language generation.
+- **Dense Retrieval:** Representing queries and documents as vectors for semantic search.
+- **Sentence Embeddings:** Generating vector representations for sentence-level similarity.
+- **Vector Search:** Searching dense vectors efficiently using FAISS.
+- **RAG Evaluation:** Assessing retrieval quality and the relationship between retrieved context and generated responses.
 
-The comparative analysis is therefore used to understand how the proposed architecture relates to existing research rather than to claim universal superiority.
+Selected references:
 
----
+1. Lewis et al. (2020), *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.*  
+   https://arxiv.org/abs/2005.11401
 
-# 🔬 Research Foundation
+2. Reimers and Gurevych (2019), *Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks.*  
+   https://arxiv.org/abs/1908.10084
 
-The project builds upon research in:
+3. Johnson, Douze, and Jégou (2017), *Billion-scale similarity search with GPUs.*  
+   https://arxiv.org/abs/1702.08734
 
-### Retrieval-Augmented Generation
+4. Vaswani et al. (2017), *Attention Is All You Need.*  
+   https://arxiv.org/abs/1706.03762
 
-Lewis et al. introduced the RAG framework for combining retrieval with generative models.
+5. Devlin et al. (2019), *BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.*  
+   https://arxiv.org/abs/1810.04805
 
-### Dense Retrieval
+## 🧩 Future Scope
 
-DPR demonstrated the effectiveness of dense passage retrieval for open-domain question answering.
+Potential improvements include:
 
-### Sentence Embeddings
+- 📦 Product-specific knowledge retrieval
+- 🎯 Improved retrieval ranking and precision
+- 🔀 Hybrid keyword and semantic search
+- 🧠 Conversation memory
+- 📊 Complete generation evaluation
+- 🕸️ Knowledge graph integration
+- 🤝 Human-agent escalation
+- 🚨 Low-confidence query detection
+- 📈 Customer-support analytics
+- 🌐 Multilingual support
+- 🔐 Authentication and authorization
+- 📚 Support for larger organizational knowledge bases
 
-Sentence-BERT provides efficient semantic representations for sentence-level similarity.
+Product-aware retrieval is a proposed extension and has not been validated as part of the current implementation.
 
-### Vector Search
+## 🚧 Limitations
 
-FAISS enables efficient similarity search over large collections of vectors.
+- The primary FAQ knowledge base contains 200 records.
+- The exact dataset provenance and licence should be documented.
+- Additional collected datasets are not confirmed as part of the live FAISS index.
+- Gemini API quota limitations prevented completion of generation evaluation.
+- Retrieval metrics do not establish the correctness of generated responses.
+- Product-aware retrieval remains a proposed extension.
+- Performance on larger datasets and concurrent requests has not been fully evaluated.
 
-### RAG Evaluation
+## 📌 Project Highlights
 
-RAGAs introduced automated evaluation approaches for assessing different aspects of RAG systems.
+- Retrieval-Augmented Generation (RAG)
+- Semantic text embeddings
+- FAISS vector similarity search
+- Top-K FAQ retrieval
+- Controlled prompt construction
+- Google Gemini API integration
+- FastAPI backend
+- React + Vite frontend
+- Retrieved-source support
+- Retrieval evaluation
+- Extensible customer-support architecture
 
-### Customer Support RAG
+## 📜 Conclusion
 
-Recent research has explored retrieval improvements and RAG architectures specifically for customer-support applications.
+This project demonstrates an integrated Retrieval-Augmented Generation architecture for customer support. By combining semantic embeddings, FAISS vector retrieval, retrieved FAQ context, controlled prompting, Google Gemini, FastAPI, and React, the system provides a foundation for generating context-aware customer-support responses.
 
----
+The recorded retrieval evaluation provides an initial assessment of the search component. Further work is needed to improve retrieval precision and complete the evaluation of generated responses before making claims about end-to-end reliability.
 
-# 🧩 Product-Aware Extension
+## 👩‍💻 Author
 
-A planned extension of the system is **product-aware customer support**.
+**Reddy Gayatri Satya Sai Pravallika**
 
-The proposed workflow is:
+B.Tech – Computer Science and Information Technology  
+K L (Deemed to be) University
 
-```text
-Customer
-    ↓
-Select Purchased Product
-    ↓
-Ask Question
-    ↓
-Product + Query
-    ↓
-Query Embedding
-    ↓
-Product-Aware Retrieval
-    ↓
-FAISS Semantic Search
-    ↓
-Relevant Product Knowledge
-    ↓
-Gemini
-    ↓
-Product-Specific Response
-```
+## 🔗 Project Repository
 
-For example:
+[LLM-Based Intelligent Customer Support Chatbot with Knowledge Retrieval](https://github.com/Pravallika2789/-KLH-CSIT-2026-2027-2420090073-CustomerSupportChatBot)
 
-```text
-Product:
-AirPods Pro 2
-
-Question:
-"Why is the battery draining quickly?"
-```
-
-The system can use the selected product as an additional retrieval constraint before generating the response.
-
-> Product-aware retrieval is currently an architectural extension and is not claimed as fully integrated into the current FAQ dataset/index.
-
----
-
-# ✨ Key Features
-
-### 🧠 Semantic Understanding
-
-Uses transformer-based embeddings instead of simple keyword matching.
-
-### 🔎 Intelligent Retrieval
-
-FAISS retrieves semantically relevant customer-support information.
-
-### 🤖 LLM-Powered Responses
-
-Google Gemini converts retrieved knowledge into natural-language responses.
-
-### 📚 Knowledge Grounding
-
-The LLM is instructed to answer using the retrieved support information.
-
-### 🔗 Source-Aware Responses
-
-Retrieved support records are returned alongside the generated response.
-
-### ⚡ FastAPI Backend
-
-Provides a clean REST API for communication between the frontend and AI pipeline.
-
-### 💻 Interactive Frontend
-
-React + Vite provides the customer-facing chatbot interface.
-
-### 🔮 Product-Aware Architecture
-
-The architecture can be extended to retrieve information based on a customer's selected product.
-
----
-
-# 🔐 Reliability Strategy
-
-The prompt layer contains explicit instructions to reduce unsupported generation.
-
-The model is instructed to:
-
-```text
-Use the provided customer-support information.
-            ↓
-Do not invent unsupported policies.
-            ↓
-Do not expose internal retrieval mechanisms.
-            ↓
-Answer directly and concisely.
-            ↓
-If information is insufficient,
-recommend contacting customer support.
-```
-
-This helps maintain a controlled boundary between retrieved knowledge and generated language.
-
----
-
-# 📈 Project Evolution
-
-The project was developed through multiple stages:
-
-```text
-Customer Support Dataset
-          ↓
-Data Processing
-          ↓
-Semantic Embeddings
-          ↓
-FAISS Retrieval
-          ↓
-RAG Pipeline
-          ↓
-Gemini Integration
-          ↓
-FastAPI Backend
-          ↓
-React Frontend
-          ↓
-Source-Aware Responses
-          ↓
-Product-Aware Extension
-```
-
----
-
-# 🚧 Limitations
-
-Current limitations include:
-
-* The primary FAQ dataset is relatively small.
-* Product metadata is not currently established in the primary FAQ records.
-* Gemini API evaluation is subject to API quota limitations.
-* The proposed composite score is project-specific rather than a standardized benchmark.
-* Literature metrics come from different datasets and experimental settings.
-* Multi-turn conversation memory is part of the planned architecture rather than a fully validated feature.
-
----
-
-# 🔮 Future Scope
-
-The project can be extended with:
-
-* 📦 Product-specific knowledge bases
-* 🧠 Conversation memory
-* 👤 User-specific support history
-* 🎯 Improved retrieval ranking
-* 🔀 Hybrid keyword + semantic search
-* 📊 RAG evaluation using RAGAs
-* 🕸️ Knowledge Graph integration
-* 🤝 Human-agent escalation
-* 🚨 Low-confidence query detection
-* 📈 Customer-support analytics
-* 🌐 Multilingual support
-* 🔐 Enterprise authentication and authorization
-* 📚 Larger organizational knowledge bases
-
----
-
-# 📌 Project Highlights
-
-```text
-✔ Retrieval-Augmented Generation
-✔ Semantic Search
-✔ Transformer Embeddings
-✔ FAISS Vector Retrieval
-✔ Top-K Knowledge Retrieval
-✔ Controlled Prompting
-✔ Google Gemini
-✔ FastAPI REST API
-✔ React + Vite
-✔ Source-Aware Responses
-✔ Evaluation Framework
-✔ Literature-Based Comparative Analysis
-✔ Product-Aware Extension
-```
-
----
-
-
-### Project
-
-**LLM-Based Intelligent Customer Support Chatbot with Knowledge Retrieval**
-
----
-
-# 📜 Conclusion
-
-This project demonstrates an end-to-end **Retrieval-Augmented Generation architecture for intelligent customer support**.
-
-By combining:
-
-```text
-Semantic Embeddings
-        +
-FAISS Retrieval
-        +
-Retrieved Knowledge
-        +
-Controlled Prompting
-        +
-Google Gemini
-        +
-FastAPI
-        +
-React
-```
-
-the system creates a complete pipeline capable of retrieving relevant customer-support knowledge and using that information to generate natural-language responses.
-
-The architecture provides a foundation for extending the chatbot toward **product-aware retrieval, conversational support, human-agent escalation, and larger enterprise knowledge bases**.
-
----
-
-## ⭐ If you find this project interesting
-
-Feel free to explore the repository, review the implementation, and contribute ideas for improving retrieval, grounding, evaluation, and customer-support capabilities.
-
-**Built with Python, FAISS, Sentence Transformers, Google Gemini, FastAPI, and React.**
-
-```
-```
+Built with Python, Sentence Transformers, FAISS, Google Gemini, FastAPI, and React.
