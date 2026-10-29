@@ -525,8 +525,3 @@ The recorded retrieval evaluation provides an initial assessment of the search c
 B.Tech – Computer Science and Information Technology  
 K L (Deemed to be) University
 
-## 🔗 Project Repository
-
-[LLM-Based Intelligent Customer Support Chatbot with Knowledge Retrieval](https://github.com/Pravallika2789/-KLH-CSIT-2026-2027-2420090073-CustomerSupportChatBot)
-
-Built with Python, Sentence Transformers, FAISS, Google Gemini, FastAPI, and React.
